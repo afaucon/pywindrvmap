@@ -5,6 +5,8 @@ from setuptools import setup
 
 # ------------------------------------------------------------------------------
 
+package_name = "my-generic-package"
+
 install_requires = [
     'requests>=2.22.0',
 ]
@@ -13,8 +15,6 @@ python_requires = ">=3.5"
 
 
 # ------------------------------------------------------------------------------
-
-package_name = os.path.basename(os.path.dirname(__file__))
 
 about = {}
 with open(os.path.join(package_name, '__version__.py'), 'r') as f:
