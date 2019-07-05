@@ -1,5 +1,5 @@
 __description__ = 'Templated package'
-__url__ = 'https://github.com/afaucon/my-generic-package'
+__url__ = 'https://github.com/afaucon/templated_package'
 __version__ = '0.0.1'
 __author__ = 'Adrien Faucon'
 __author_email__ = 'adrien.faucon@gmail.com'

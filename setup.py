@@ -5,7 +5,7 @@ from setuptools import setup
 
 # ------------------------------------------------------------------------------
 
-package_name = "my-generic-package"
+package_name = "templated_package"
 
 install_requires = [
     'requests>=2.22.0',
