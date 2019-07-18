@@ -7,8 +7,10 @@ from setuptools import setup
 
 package_name = "templated_package"
 
+dependency_links = [
+]
+
 install_requires = [
-    'requests>=2.22.0',
 ]
 
 python_requires = ">=3.5"
@@ -35,5 +37,6 @@ setup(
     long_description=readme,
     long_description_content_type='text/markdown',
     python_requires=python_requires,
+    dependency_links=dependency_links,
     install_requires=install_requires,
 )
