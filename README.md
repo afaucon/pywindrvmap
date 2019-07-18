@@ -7,7 +7,7 @@ Write a small description of the package.
 Install the package [from a CVS url](https://pip.pypa.io/en/stable/reference/pip_install/#git).
 
 ```bash
-pip install git+https://github.com/afaucon/templated_package.git@v1.0.0
+pip install git+https://github.com/afaucon/templated_package.git@0.0.1
 ```
 
 ## Usage
