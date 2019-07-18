@@ -4,8 +4,11 @@ from setuptools import setup
 
 
 # ------------------------------------------------------------------------------
+# Documentation: https://setuptools.readthedocs.io/en/latest/setuptools.html
 
 package_name = "templated_package"
+
+python_requires = ">=3.5"
 
 dependency_links = [
 ]
@@ -13,7 +16,13 @@ dependency_links = [
 install_requires = [
 ]
 
-python_requires = ">=3.5"
+entry_points = {
+    'console_scripts': [
+        'templated_package_entry_points = templated_package.__main__:main_procedure',
+    ],
+    'gui_scripts': [
+    ]
+}
 
 
 # ------------------------------------------------------------------------------
@@ -39,4 +48,5 @@ setup(
     python_requires=python_requires,
     dependency_links=dependency_links,
     install_requires=install_requires,
+    entry_points=entry_points,
 )
