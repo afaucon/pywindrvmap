@@ -18,7 +18,7 @@ install_requires = [
 
 entry_points = {
     'console_scripts': [
-        'templated_package_entry_points = templated_package.__main__:main_procedure',
+        'templated_package = templated_package.__main__:main_procedure',
     ],
     'gui_scripts': [
     ]
