@@ -15,7 +15,7 @@ Install the package [from GitHub](https://pip.pypa.io/en/stable/reference/pip_in
 
 ### For developpers
 
-Clone the package from GitHub and install it in editable mode (i.e. [setuptools “develop mode”](https://setuptools.readthedocs.io/en/latest/setuptools.html#development-mode)).
+Clone the package from GitHub and install it in editable mode (i.e. [setuptools "develop mode"](https://setuptools.readthedocs.io/en/latest/setuptools.html#development-mode)).
 
 ```bash
 >> git clone git+https://github.com/afaucon/templated_package.git
