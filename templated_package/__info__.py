@@ -1,4 +1,5 @@
-__description__ = 'Templated package'
+__package_name__ = "templated_package"
+__description__ = 'Write a small description of the package.'
 __url__ = 'https://github.com/afaucon/templated_package'
 __version__ = '0.0.1'
 __author__ = 'Adrien Faucon'
