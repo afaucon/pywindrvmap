@@ -6,7 +6,7 @@ from setuptools import setup
 # ------------------------------------------------------------------------------
 # Documentation: https://setuptools.readthedocs.io/en/latest/setuptools.html
 
-package_name = "templated_package"
+package_name = "{{package_name}}"
 
 python_requires = ">=3.5"
 
@@ -18,7 +18,7 @@ install_requires = [
 
 entry_points = {
     'console_scripts': [
-        'templated_package = templated_package.__main__:main_procedure',
+        '{{package_name}} = {{package_name}}.__main__:main_procedure',
     ],
     'gui_scripts': [
     ]
