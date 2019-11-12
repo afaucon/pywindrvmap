@@ -5,18 +5,19 @@ from setuptools import setup, find_packages
 package_name = "{{package_name}}"
 
 
-python_requires = ">=3.5"
+python_requires = "{{USER_CODE}}"
 # Justifications:
+#   {{USER_CODE}}
 
 
-dependency_links = [
-]
+dependency_links = {{USER_CODE}}
 # Justifications:
+#   {{USER_CODE}}
 
 
-install_requires = [
-]
+install_requires = {{USER_CODE}}
 # Justifications:
+#   {{USER_CODE}}
 
 
 entry_points = {
