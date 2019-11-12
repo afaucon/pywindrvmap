@@ -22,7 +22,7 @@ install_requires = {{USER_CODE}}
 
 entry_points = {
     'console_scripts': [
-        '{{package_name}} = {{package_name}}.__main__:main_procedure',
+        '{{package_name}} = {{package_name}}.__main__:{{package_name}}_cli',
         {{USER_CODE}}
     ],
     'gui_scripts': [
