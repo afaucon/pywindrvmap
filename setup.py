@@ -1,24 +1,28 @@
-#!/usr/bin/env python
 import os
-from setuptools import setup
+from setuptools import setup, find_packages
 
-
-# ------------------------------------------------------------------------------
-# Documentation: https://setuptools.readthedocs.io/en/latest/setuptools.html
 
 package_name = "{{package_name}}"
 
+
 python_requires = ">=3.5"
+# Justifications:
+
 
 dependency_links = [
 ]
+# Justifications:
+
 
 install_requires = [
 ]
+# Justifications:
+
 
 entry_points = {
     'console_scripts': [
         '{{package_name}} = {{package_name}}.__main__:main_procedure',
+      # '{{package_name}}-{{subcommand}} = {{package_name}}.__main__:{{package_name}}_{{subcommand}}_cli',
     ],
     'gui_scripts': [
     ]
@@ -42,7 +46,7 @@ setup(
     author_email=about['__author_email__'],
     url=about['__url__'],
     license=about['__license__'],
-    packages=setuptools.find_packages(),
+    packages=find_packages(),
     long_description=readme,
     long_description_content_type='text/markdown',
     python_requires=python_requires,
