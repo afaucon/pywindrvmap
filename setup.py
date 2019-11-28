@@ -24,7 +24,7 @@ install_requires = [
 
 entry_points = {
     'console_scripts': [
-        'drive = windrvmap.__main__:drive_cli',
+        'drives = windrvmap.__main__:drive_cli',
     ],
     'gui_scripts': [
     ]

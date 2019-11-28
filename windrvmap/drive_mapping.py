@@ -6,51 +6,9 @@ import logging
 # TODO: For subst,  use windll.kernel32.DefineDosDeviceW
 # TODO: For netuse, use win32wnet from pywin32
 
-r"""
-Example of "net use" command output
------------------------------------
-
-Les nouvelles connexions seront mémorisées.
-
-
-État         Local     Distant                   Réseau
-
--------------------------------------------------------------------------------
-            A:        \\view                    ClearCase Dynamic Views
-Déconnectée  H:        \\SFCRL10003\COMMUN       Microsoft Windows Network
-            M:        \\view\app_evc            ClearCase Dynamic Views
-            N:        \\view\afaucon_01_vw      ClearCase Dynamic Views
-Non disponib O:        \\view\afaucon_02_vw      ClearCase Dynamic Views
-Déconnectée  P:        \\sfcrl10002.next.loc\Preston_NT
-                                                Microsoft Windows Network
-Déconnectée  S:        \\sfcrl10002.next.loc\PL  Microsoft Windows Network
-Déconnectée  T:        \\sfcrl10002.next.loc\AQ  Microsoft Windows Network
-Déconnectée  U:        \\SFCRL10003\COMMUN       Microsoft Windows Network
-Déconnectée  V:        \\SFCRL10003\EBE          Microsoft Windows Network
-Déconnectée  W:        \\sfcrl10003.next.loc\IND Microsoft Windows Network
-Déconnectée  X:        \\SFCRL10003\BSI          Microsoft Windows Network
-Déconnectée  Y:        \\sfcrl10003.next.loc\AFS Microsoft Windows Network
-Déconnectée  Z:        \\sfcrl10002.next.loc\PERS\afaucon
-                                                Microsoft Windows Network
-Déconnectée            \\cwcrl196tw\C            Microsoft Windows Network
-                    \\view\afaucon_02_vw      ClearCase Dynamic Views
-                    \\view\cc_adm_view        ClearCase Dynamic Views
-                    \\view\livraison_agl      ClearCase Dynamic Views
-La commande s’est terminée correctement.
-
-Example of "subst" command output
----------------------------------
-
-E:\: => C:\A\...
-F:\: => C:\B\...
-...
-
-"""
-
-
 def _program_to_use(path):
     if path.startswith('\\\\'):
-        return 'netuse'
+        return 'net use'
     elif path[1:3] == ':\\':
         return 'subst'
     else:
@@ -65,9 +23,9 @@ def _call(command_line):
     :return: [description]
     :rtype: [type]
     """
-    completed_process = subprocess.run(command_line.split(' '), stdout=subprocess.PIPE)
+    completed_process = subprocess.run(command_line.split(' '), stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
     output = completed_process.stdout.decode(('cp850').encode('latin-1','replace').decode('latin-1'))
-    # print(output)
+    #print(output)
     return output
     
 
@@ -85,7 +43,7 @@ class CommandLine():
         """
         self.method = method
 
-        if method != 'netuse' and method != 'subst':
+        if method != 'net use' and method != 'subst':
             raise Exception # TODO: Improve this statement
 
     def list(self):
@@ -95,7 +53,7 @@ class CommandLine():
         :return: [description]
         :rtype: [type]
         """
-        if self.method == 'netuse':
+        if self.method == 'net use':
             command_line = 'net use'
         if self.method == 'subst':
             command_line = 'subst'
@@ -112,7 +70,7 @@ class CommandLine():
         :return: [description]
         :rtype: [type]
         """
-        if self.method == 'netuse':
+        if self.method == 'net use':
             command_line = 'net use ' + dl + ': ' + path
         if self.method == 'subst':
             command_line = 'subst ' + dl + ': ' + path
@@ -127,25 +85,28 @@ class CommandLine():
         :return: [description]
         :rtype: [type]
         """
-        if self.method == 'netuse':
+        if self.method == 'net use':
             command_line = 'net use ' + dl + ': /DELETE'
         if self.method == 'subst':
-            command_line = 'subst ' + dl + ': /DELETE'
+            command_line = 'subst ' + dl + ': /D'
         return _call(command_line)
 
 class DriveInfo:
     """
     [summary]
     """
+    DISPLAY_ALL = 0
+    DISPLAY_NETUSE_ONLY = 1
+    DISPLAY_SUBST_ONLY = 2
 
-    def __init__(self, letter, netuse=None, subst=None, is_physical=False):
+    def __init__(self, letter):
         """
         Object constructor
         """
         self.letter = letter
-        self.netuse = netuse
-        self.subst = subst
-        self.is_physical = is_physical
+        self.netuse = None
+        self.subst = None
+        self.is_physical = False
 
     def is_used(self):
         """
@@ -165,7 +126,7 @@ class DriveInfo:
         """
         return not self.is_used()
 
-    def __str__(self): 
+    def __str__(self, kind=DISPLAY_ALL): 
         """
         For call to str(). Allows to prints readable form of the object for end users.
         
@@ -176,25 +137,42 @@ class DriveInfo:
         if self.is_physical:
             retstring = retstring + '{}: physical drive\n'.format(self.letter)
         elif self.netuse is not None and self.subst is not None:
-            retstring = retstring + '{}: {}\n'.format(self.letter, self.netuse)
-            retstring = retstring + '   {}\n'.format(self.subst)
+            if kind == DriveInfo.DISPLAY_ALL:
+                retstring = retstring + '{} --> {}\n'.format(self.letter, self.netuse)
+                retstring = retstring + '  --> {}\n'.format(self.subst)
+            if kind == DriveInfo.DISPLAY_NETUSE_ONLY:
+                retstring = retstring + '{} --> {}\n'.format(self.letter, self.netuse)
+            if kind == DriveInfo.DISPLAY_SUBST_ONLY:
+                retstring = retstring + '{} --> {}\n'.format(self.letter, self.subst)
         elif self.netuse is not None:
-            retstring = retstring + '{}: {}\n'.format(self.letter, self.netuse)
+            retstring = retstring + '{} --> {}\n'.format(self.letter, self.netuse)
         elif self.subst is not None:
-            retstring = retstring + '{}: {}\n'.format(self.letter, self.subst)
+            retstring = retstring + '{} --> {}\n'.format(self.letter, self.subst)
         else:
             retstring = retstring + '{}: unused\n'.format(self.letter)
         return retstring[:-1]  # Removing the last character that is a '\n'
+
+    def string_representation(self, kind):
+        """
+        [summary]
+        
+        :param kind: [description]
+        :type kind: [type]
+        :return: [description]
+        :rtype: [type]
+        """
+        return self.__str__(kind)
+
 
 # Public interface
 # ================
 
 ALL = 0
-USED_ONLY = 1
-AVAILABLE_ONLY = 2
-USED_BY_NETUSE_ONLY = 3
-USED_BY_SUBST_ONLY = 4
-PHYSICAL_ONLY = 5
+USED = 1
+AVAILABLE = 2
+NETWORK = 3
+LOCAL = 4
+PHYSICAL = 5
 
 class Drives:
     """
@@ -203,17 +181,25 @@ class Drives:
 
     drive_letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
 
-    def __init__(self, kind=ALL):
+    def __init__(self):
         """
         Object constructor
         """
-
+        self.update()
+    
+    def update(self):
+        """
+        [summary]
+        
+        :raises Exception: [description]
+        :raises Exception: [description]
+        """
         drives_info = {}
         for drive_letter in Drives.drive_letters:
             drives_info.update({'{}'.format(drive_letter) : DriveInfo(drive_letter)})
 
         # Netuse part
-        output = CommandLine('netuse').list()
+        output = CommandLine('net use').list()
         output_lines = output.split("\n")
 
         for output_line in output_lines:
@@ -261,18 +247,17 @@ class Drives:
         # Create the attributes of the object
         for drive_letter in drives_info:
             drive = drives_info[drive_letter]
-            if kind == ALL:
-                self.__dict__[drive_letter] = drive
-            if kind == USED_ONLY and drive.is_used():
-                self.__dict__[drive_letter] = drive
-            if kind == AVAILABLE_ONLY and drive.is_available():
-                self.__dict__[drive_letter] = drive
-            if kind == USED_BY_NETUSE_ONLY and drive.netuse:
-                self.__dict__[drive_letter] = drive
-            if kind == USED_BY_SUBST_ONLY and drive.subst:
-                self.__dict__[drive_letter] = drive
-            if kind == PHYSICAL_ONLY and drive.is_physical:
-                self.__dict__[drive_letter] = drive
+            self.__dict__[drive_letter] = drive
+
+    def drives_iter(self):
+        """
+        [summary]
+        
+        :yield: [description]
+        :rtype: [type]
+        """
+        for drive_letter in self.__dict__.keys():
+            yield self.drive(drive_letter)
 
     def drive(self, drive_letter):
         """
@@ -285,78 +270,133 @@ class Drives:
         """
         return getattr(self, drive_letter.upper())
 
-    def drives_iter(self):
+    def letters(self, kind=ALL):
         """
         [summary]
-        
-        :yield: [description]
-        :rtype: [type]
-        """
-        for drive_letter in self.__dict__.keys():
-            yield self.drive(drive_letter)
-
-    def __str__(self):
-        """
-        For call to str(). Allows to prints readable form of the object for end users.
         
         :return: [description]
         :rtype: [type]
         """
-        retstring = ""
+        retval = []
         for drive in self.drives_iter():
-            retstring = retstring + str(drive) + '\n'
-        return retstring[:-1]  # Removing the last character that is a '\n'
-                
-def add(drive_letter, path):
-    """
-    Description to write
-    """
-    drive = Drives().drive(drive_letter)
-    logging.debug('BEFORE --> ' + str(drive))
+            if kind == ALL:
+                retval.append(drive.letter)
+            if kind == USED and drive.is_used():
+                retval.append(drive.letter)
+            if kind == AVAILABLE and drive.is_available():
+                retval.append(drive.letter)
+            if kind == NETWORK and drive.netuse:
+                retval.append(drive.letter)
+            if kind == LOCAL and drive.subst:
+                retval.append(drive.letter)
+            if kind == PHYSICAL and drive.is_physical:
+                retval.append(drive.letter)
+        return retval
 
-    if drive.is_available():
+    def __str__(self, kind=None):
+        """
+        For call to str(). Allows to prints readable form of the object for end users.
         
-        program = _program_to_use(path)
-        _ = CommandLine(program).add(drive_letter, path)
+        :param kind: [description], defaults to None
+        :type kind: [type], optional
+        :return: [description]
+        :rtype: [type]
+        """
+        if kind is None:
+            kind = ALL
 
-        drive = Drives().drive(drive_letter)
-        logging.debug('AFTER --> ' + str(drive))
+        retstring = ""
+        if kind == ALL or kind == USED:
+            retstring = ""
+            for drive in self.drives_iter():
+                if drive.letter in self.letters(kind):
+                    retstring = retstring + drive.string_representation(DriveInfo.DISPLAY_ALL) + '\n'
 
-        if drive.is_used():
-            status = 'Success'
-            message = '{} drive successfully added'.format(drive_letter)
-        else:
-            status = 'Failed'
-            message = 'Impossible to add {} drive'
-    else:
-        status = 'Failed'
-        message = '{} drive already used. Adding impossible'.format(drive_letter)
+        if kind == NETWORK or kind == LOCAL:
+            retstring = ""
+            for drive in self.drives_iter():
+                if drive.letter in self.letters(kind):
+                    if kind == NETWORK:
+                        retstring = retstring + drive.string_representation(DriveInfo.DISPLAY_NETUSE_ONLY) + '\n'
+                    if kind == LOCAL:
+                        retstring = retstring + drive.string_representation(DriveInfo.DISPLAY_NETUSE_ONLY) + '\n'
+            
+        if kind == AVAILABLE or kind == PHYSICAL:
+            for drive in self.drives_iter():
+                if drive.letter in self.letters(kind):
+                    retstring = retstring + drive.letter + '\n'
+        return retstring[:-1]  # Removing the last character that is a '\n'
 
-    return status, message
-
-def remove(drive_letter):
-    """
-    Description to write
-    """
-    drive = Drives().drive(drive_letter)
-    logging.debug('BEFORE --> ' + str(drive))
-
-    if drive.is_used():
-
-        _ = CommandLine('netuse').remove(drive_letter)
-        _ = CommandLine('subst').remove(drive_letter)
-
-        drive = Drives().drive(drive_letter)
-        logging.debug('AFTER --> ' + str(drive))
+    def string_representation(self, kind):
+        """
+        [summary]
+        
+        :param kind: [description]
+        :type kind: [type]
+        :return: [description]
+        :rtype: [type]
+        """
+        return self.__str__(kind)
+    
+    def add(self, drive_letter, path):
+        """
+        [summary]
+        
+        :param drive_letter: [description]
+        :type drive_letter: [type]
+        :param path: [description]
+        :type path: [type]
+        :return: [description]
+        :rtype: [type]
+        """
+        drive = self.drive(drive_letter)
+        logging.debug('BEFORE --> ' + str(drive))
 
         if drive.is_available():
-            status = 'Success'
-            message = '{} drive successfully removed'.format(drive_letter)
+            
+            program = _program_to_use(path)
+            _ = CommandLine(program).add(drive_letter, path)
+            self.update()
+
+            drive = self.drive(drive_letter)
+            logging.debug('AFTER --> ' + str(drive))
+
+            if drive.is_used():
+                status = 'Success'
+                message = '{} drive successfully added'.format(drive_letter)
+            else:
+                status = 'Failed'
+                message = 'Impossible to add {} drive'.format(drive_letter)
         else:
             status = 'Failed'
-            message = 'Impossible to remove {} drive'
-    else:
-        status = 'Failed'
-        message = '{} drive not used. Removing impossible'.format(drive_letter)
+            message = '{} drive already used. Adding impossible'.format(drive_letter)
 
-    return status, message
+        return status, message
+
+    def remove(self, drive_letter):
+        """
+        Description to write
+        """
+        drive = self.drive(drive_letter)
+        logging.debug('BEFORE --> ' + str(drive))
+
+        if drive.is_used():
+
+            _ = CommandLine('net use').remove(drive_letter)
+            _ = CommandLine('subst').remove(drive_letter)
+            self.update()
+
+            drive = self.drive(drive_letter)
+            logging.debug('AFTER --> ' + str(drive))
+
+            if drive.is_available():
+                status = 'Success'
+                message = '{} drive successfully removed'.format(drive_letter)
+            else:
+                status = 'Failed'
+                message = 'Impossible to remove {} drive'.format(drive_letter)
+        else:
+            status = 'Failed'
+            message = '{} drive not used. Removing impossible'.format(drive_letter)
+
+        return status, message
