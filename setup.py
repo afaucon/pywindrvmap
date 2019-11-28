@@ -2,28 +2,29 @@ import os
 from setuptools import setup, find_packages
 
 
-package_name = "{{package_name}}"
+package_name = "windrvmap"
 
 
-python_requires = "{{USER_CODE}}"
+python_requires = ">=3.8"
 # Justifications:
-#   {{USER_CODE}}
+#   Just tested with python 3.8
 
 
-dependency_links = {{USER_CODE}}
+dependency_links = []
 # Justifications:
-#   {{USER_CODE}}
+#   No external dependancy
 
 
-install_requires = {{USER_CODE}}
+install_requires = [
+    'Click',
+]
 # Justifications:
 #   {{USER_CODE}}
 
 
 entry_points = {
     'console_scripts': [
-        '{{package_name}} = {{package_name}}.__main__:{{package_name}}_cli',
-        {{USER_CODE}}
+        'drive = windrvmap.__main__:drive_cli',
     ],
     'gui_scripts': [
     ]

@@ -8,4 +8,7 @@ from .__info__ import __license__
 from .__info__ import __copyright__
 
 
-from .api import service_1
+from .drive_mapping import ALL, USED_ONLY, AVAILABLE_ONLY, USED_BY_NETUSE_ONLY, USED_BY_SUBST_ONLY, PHYSICAL_ONLY
+from .drive_mapping import Drives
+from .drive_mapping import add
+from .drive_mapping import remove
