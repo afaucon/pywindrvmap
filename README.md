@@ -63,20 +63,36 @@ Clone the package from GitHub and install it in editable mode (i.e. [setuptools 
 
 ### With the command line interface
 
-```bash
-(venv) C:\Users\Adrien>python -m windrvmap
-(venv) C:\Users\Adrien>python -m windrvmap --kind=local
-(venv) C:\Users\Adrien>python -m windrvmap --kind=available
-(venv) C:\Users\Adrien>python -m windrvmap add D C:\Data
-(venv) C:\Users\Adrien>python -m windrvmap remove D
+Call `python -m windrvmap`, or `drives`.
+
+Example:
+
 ```
+(venv) C:\Users\Adrien>python -m windrvmap
+C: physical drive
+Y --> \\ComputerName\SharedFolder\Resource1
+Z --> \\ComputerName\SharedFolder\Resource2
 
-Or directly:
-
-```bash
 (venv) C:\Users\Adrien>drives
+C: physical drive
+Y --> \\ComputerName\SharedFolder\Resource1
+Z --> \\ComputerName\SharedFolder\Resource2
+
+(venv) C:\Users\Adrien>drives --kind=physical
+C
+
+(venv) C:\Users\Adrien>drives --kind=network
+Y --> \\ComputerName\SharedFolder\Resource1
+Z --> \\ComputerName\SharedFolder\Resource2
+
 (venv) C:\Users\Adrien>drives --kind=local
-(venv) C:\Users\Adrien>drives --kind=available
+
 (venv) C:\Users\Adrien>drives add D C:\Data
+D drive successfully added
+
+(venv) C:\Users\Adrien>drives --kind=local
+D --> C:\Data
+
 (venv) C:\Users\Adrien>drives remove D
+D drive successfully removed
 ```
