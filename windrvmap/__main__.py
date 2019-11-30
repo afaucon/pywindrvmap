@@ -10,7 +10,7 @@ import windrvmap
 @click.group(invoke_without_command=True)
 @click.option('-v', '--verbose', type=click.IntRange(min=0, max=2), default=0)
 @click.option('--kind',
-              type=click.Choice(['all', 'used', 'available', 'unused', 'network', 'local', 'physical'], case_sensitive=False),
+              type=click.Choice(['all', 'used', 'available', 'unused', 'physical', 'shortcut', 'network', 'local'], case_sensitive=False),
               default='all')
 @click.pass_context
 def drive_cli(ctx, verbose, kind):
@@ -29,12 +29,14 @@ def drive_cli(ctx, verbose, kind):
             click.echo(drives.string_representation(windrvmap.USED))
         if kind == 'available' or kind == 'unused':
             click.echo(drives.string_representation(windrvmap.AVAILABLE))
-        if kind == 'network':
-            click.echo(drives.string_representation(windrvmap.NETWORK))
-        if kind == 'local':
-            click.echo(drives.string_representation(windrvmap.LOCAL))
         if kind == 'physical':
             click.echo(drives.string_representation(windrvmap.PHYSICAL))
+        if kind == 'shortcut':
+            click.echo(drives.string_representation(windrvmap.SHORTCUT))
+        if kind == 'network':
+            click.echo(drives.string_representation(windrvmap.NETWORK_SHORTCUT))
+        if kind == 'local':
+            click.echo(drives.string_representation(windrvmap.LOCAL_SHORTCUT))
 
 @drive_cli.command()
 @click.argument('drive_letter')

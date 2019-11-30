@@ -8,5 +8,5 @@ from .__info__ import __license__
 from .__info__ import __copyright__
 
 
-from .drive_mapping import ALL, USED, AVAILABLE, NETWORK, LOCAL, PHYSICAL
+from .drive_mapping import ALL, USED, AVAILABLE, PHYSICAL, SHORTCUT, NETWORK_SHORTCUT, LOCAL_SHORTCUT
 from .drive_mapping import Drives

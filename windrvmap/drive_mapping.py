@@ -104,18 +104,16 @@ class DriveInfo:
         Object constructor
         """
         self.letter = letter
-        self.netuse = None
-        self.subst = None
         self.is_physical = False
 
-    def is_used(self):
-        """
-        [summary]
-        
-        :return: [description]
-        :rtype: [type]
-        """
-        return self.is_physical or self.netuse is not None or self.subst is not None
+        self._netuse = None
+        self._subst = None
+
+    def network_shortcut(self):
+        return self._netuse
+
+    def local_shortcut(self):
+        return self._subst
     
     def is_available(self):
         """
@@ -125,6 +123,24 @@ class DriveInfo:
         :rtype: [type]
         """
         return not self.is_used()
+
+    def is_used(self):
+        """
+        [summary]
+        
+        :return: [description]
+        :rtype: [type]
+        """
+        return self.is_physical or self.is_shortcut()
+    
+    def is_shortcut(self):
+        """
+        [summary]
+        
+        :return: [description]
+        :rtype: [type]
+        """
+        return self._netuse is not None or self._subst is not None
 
     def __str__(self, kind=DISPLAY_ALL): 
         """
@@ -136,18 +152,18 @@ class DriveInfo:
         retstring = ""
         if self.is_physical:
             retstring = retstring + '{}: physical drive\n'.format(self.letter)
-        elif self.netuse is not None and self.subst is not None:
+        elif self._netuse is not None and self._subst is not None:
             if kind == DriveInfo.DISPLAY_ALL:
-                retstring = retstring + '{} --> {}\n'.format(self.letter, self.netuse)
-                retstring = retstring + '  --> {}\n'.format(self.subst)
+                retstring = retstring + '{} --> {}\n'.format(self.letter, self._netuse)
+                retstring = retstring + '  --> {}\n'.format(self._subst)
             if kind == DriveInfo.DISPLAY_NETUSE_ONLY:
-                retstring = retstring + '{} --> {}\n'.format(self.letter, self.netuse)
+                retstring = retstring + '{} --> {}\n'.format(self.letter, self._netuse)
             if kind == DriveInfo.DISPLAY_SUBST_ONLY:
-                retstring = retstring + '{} --> {}\n'.format(self.letter, self.subst)
-        elif self.netuse is not None:
-            retstring = retstring + '{} --> {}\n'.format(self.letter, self.netuse)
-        elif self.subst is not None:
-            retstring = retstring + '{} --> {}\n'.format(self.letter, self.subst)
+                retstring = retstring + '{} --> {}\n'.format(self.letter, self._subst)
+        elif self._netuse is not None:
+            retstring = retstring + '{} --> {}\n'.format(self.letter, self._netuse)
+        elif self._subst is not None:
+            retstring = retstring + '{} --> {}\n'.format(self.letter, self._subst)
         else:
             retstring = retstring + '{}: unused\n'.format(self.letter)
         return retstring[:-1]  # Removing the last character that is a '\n'
@@ -170,9 +186,10 @@ class DriveInfo:
 ALL = 0
 USED = 1
 AVAILABLE = 2
-NETWORK = 3
-LOCAL = 4
-PHYSICAL = 5
+PHYSICAL = 3
+SHORTCUT = 4
+NETWORK_SHORTCUT = 5
+LOCAL_SHORTCUT = 6
 
 class Drives:
     """
@@ -212,7 +229,7 @@ class Drives:
                 path         = right_part.split(' ')[0]
 
                 if drive_letter.isalpha() and path.startswith(r'\\'):
-                    drives_info[drive_letter].netuse = path
+                    drives_info[drive_letter]._netuse = path
                 else:
                     # Something went wrong
                     raise Exception # TODO: Improve this statement
@@ -231,14 +248,14 @@ class Drives:
                 path         = right_part
 
                 if drive_letter.isalpha() and os.path.exists(path):
-                    drives_info[drive_letter].subst = path
+                    drives_info[drive_letter]._subst = path
                 else:
                     # Something went wrong
                     raise Exception # TODO: Improve this statement
 
         # Detecting physical drives
         for drive_letter in Drives.drive_letters:
-            if drives_info[drive_letter].netuse is None and drives_info[drive_letter].subst is None:
+            if drives_info[drive_letter]._netuse is None and drives_info[drive_letter]._subst is None:
                 if os.path.exists(drive_letter + ':'):
                     drives_info[drive_letter].is_physical = True
                 else:
@@ -270,7 +287,7 @@ class Drives:
         """
         return getattr(self, drive_letter.upper())
 
-    def letters(self, kind=ALL):
+    def get(self, kind=ALL):
         """
         [summary]
         
@@ -280,18 +297,29 @@ class Drives:
         retval = []
         for drive in self.drives_iter():
             if kind == ALL:
-                retval.append(drive.letter)
+                retval.append(drive)
             if kind == USED and drive.is_used():
-                retval.append(drive.letter)
+                retval.append(drive)
             if kind == AVAILABLE and drive.is_available():
-                retval.append(drive.letter)
-            if kind == NETWORK and drive.netuse:
-                retval.append(drive.letter)
-            if kind == LOCAL and drive.subst:
-                retval.append(drive.letter)
+                retval.append(drive)
             if kind == PHYSICAL and drive.is_physical:
-                retval.append(drive.letter)
+                retval.append(drive)
+            if kind == SHORTCUT and drive.is_shortcut():
+                retval.append(drive)
+            if kind == NETWORK_SHORTCUT and drive.network_shortcut():
+                retval.append(drive)
+            if kind == LOCAL_SHORTCUT and drive.local_shortcut():
+                retval.append(drive)
         return retval
+
+    def letters(self, kind=ALL):
+        """
+        [summary]
+        
+        :return: [description]
+        :rtype: [type]
+        """
+        return [drive.letter for drive in self.get(kind)]
 
     def __str__(self, kind=None):
         """
@@ -306,25 +334,23 @@ class Drives:
             kind = ALL
 
         retstring = ""
-        if kind == ALL or kind == USED:
+        if kind == ALL or kind == USED or kind == SHORTCUT:
             retstring = ""
-            for drive in self.drives_iter():
-                if drive.letter in self.letters(kind):
-                    retstring = retstring + drive.string_representation(DriveInfo.DISPLAY_ALL) + '\n'
+            for drive in self.get(kind):
+                retstring = retstring + drive.string_representation(DriveInfo.DISPLAY_ALL) + '\n'
 
-        if kind == NETWORK or kind == LOCAL:
+        if kind == NETWORK_SHORTCUT or kind == LOCAL_SHORTCUT:
             retstring = ""
-            for drive in self.drives_iter():
-                if drive.letter in self.letters(kind):
-                    if kind == NETWORK:
-                        retstring = retstring + drive.string_representation(DriveInfo.DISPLAY_NETUSE_ONLY) + '\n'
-                    if kind == LOCAL:
-                        retstring = retstring + drive.string_representation(DriveInfo.DISPLAY_NETUSE_ONLY) + '\n'
+            for drive in self.get(kind):
+                if kind == NETWORK_SHORTCUT:
+                    retstring = retstring + drive.string_representation(DriveInfo.DISPLAY_NETUSE_ONLY) + '\n'
+                if kind == LOCAL_SHORTCUT:
+                    retstring = retstring + drive.string_representation(DriveInfo.DISPLAY_NETUSE_ONLY) + '\n'
             
         if kind == AVAILABLE or kind == PHYSICAL:
-            for drive in self.drives_iter():
-                if drive.letter in self.letters(kind):
-                    retstring = retstring + drive.letter + '\n'
+            for drive in self.get(kind):
+                retstring = retstring + drive.letter + '\n'
+                
         return retstring[:-1]  # Removing the last character that is a '\n'
 
     def string_representation(self, kind):

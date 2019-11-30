@@ -30,33 +30,35 @@ Clone the package from GitHub and install it in editable mode (i.e. [setuptools 
 ```python
 >>> import windrvmap
 >>>
->>> windrvmap.__author__
 >>> windrvmap.__version__
+'1.0.0'
 >>>
 >>> drives = windrvmap.Drives()
->>> drives.letters(windrvmap.PHYSICAL)
-C
->>> drives.letters(windrvmap.NETWORK)
-Z --> \\ComputerName\SharedFolder\Resource
 >>>
->>> drives.letters(windrvmap.LOCAL)
-
+>>> drives.letters(windrvmap.PHYSICAL)
+['C']
+>>>
+>>> drives.letters(windrvmap.NETWORK_SHORTCUT)
+['Z']
+>>>
+>>> drives.letters(windrvmap.LOCAL_SHORTCUT)
+[]
 >>>
 >>> drives.letters(windrvmap.USED)
-C: physical drive
-Z --> \\ComputerName\SharedFolder\Resource
+['C', 'Z']
 >>>
 >>> drives.add('D', 'C:\\Data')
 ('Success', 'D drive successfully added')
 >>>
->>> drives.D.subst
-'C:\\Data'
->>>
->>> drives.letters(windrvmap.LOCAL)
+>>> drives.letters(windrvmap.LOCAL_SHORTCUT)
 ['D']
+>>>
+>>> drives.D.local_shortcut()
+'C:\\Data'
 >>>
 >>> drives.remove('D')
 ('Success', 'D drive successfully removed')
+>>>
 ```
 
 ### With the command line interface
