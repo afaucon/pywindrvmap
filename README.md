@@ -11,7 +11,8 @@ It internally works by calling windows `subst` and `net use` commands and by par
 Install the package [from GitHub](https://pip.pypa.io/en/stable/reference/pip_install/#git).
 
 ```bash
-(venv) C:\Users\Adrien>pip install git+https://github.com/afaucon/pywindrvmap.git@v1.0.0
+(venv) C:\Users\Adrien>pip install git+https://github.com/afaucon/pywindrvmap.git@<git_tag_name>
+(venv) C:\Users\Adrien>pip install git+https://github.com/afaucon/pywindrvmap.git@v1.0.1
 (venv) C:\Users\Adrien>pip list
 ```
 
@@ -67,7 +68,7 @@ Call `python -m windrvmap`, or `drives`.
 
 Example:
 
-```
+```shell
 (venv) C:\Users\Adrien>python -m windrvmap
 C: physical drive
 Y --> \\ComputerName\SharedFolder\Resource1

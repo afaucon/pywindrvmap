@@ -1,6 +1,14 @@
-import subprocess
-import os.path
+import json
 import logging
+import os
+import os.path
+import pathlib
+import subprocess
+
+from .__info__ import __package_name__, __version__
+
+
+config_file_name = '.' + __package_name__ + '-' + __version__ + '-config.json'
 
 
 # TODO: For subst,  use windll.kernel32.DefineDosDeviceW
@@ -25,7 +33,6 @@ def _call(command_line):
     """
     completed_process = subprocess.run(command_line.split(' '), stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
     output = completed_process.stdout.decode(('cp850').encode('latin-1','replace').decode('latin-1'))
-    #print(output)
     return output
     
 
@@ -141,6 +148,20 @@ class DriveInfo:
         :rtype: [type]
         """
         return self._netuse is not None or self._subst is not None
+
+    def get_shortcut(self):
+        """
+        [summary]
+        
+        :return: [description]
+        :rtype: [type]
+        """
+        if self._netuse:
+            return self._netuse
+        elif self._subst:
+            return self._subst
+        else:
+            return None
 
     def __str__(self, kind=DISPLAY_ALL): 
         """
@@ -424,5 +445,152 @@ class Drives:
         else:
             status = 'Failed'
             message = '{} drive not used. Removing impossible'.format(drive_letter)
+
+        return status, message
+
+class ConfigException(Exception):
+    pass
+
+class Config:
+    
+    def __init__(self):
+        """
+        Constructor of the class
+        
+        :raises ConfigException: If there is a json format error in the configuration file or if the configuration file is not a json object.
+        """
+        self.config_path = pathlib.Path(os.environ['HOMEDRIVE']) / pathlib.Path(os.environ['HOMEPATH']) / config_file_name
+        if not self.config_path.is_file():
+            self.mapping = {}
+        else:
+            try:
+                with open(self.config_path, 'r') as f:
+                    self.mapping = json.load(f)
+            except json.decoder.JSONDecodeError as e:
+                logging.error('Configuration json format error (line {}, column {}): {}'.format(str(e.lineno), str(e.colno), self.config_path))
+                raise ConfigException('Configuration json format error (line {}, column {}): {}'.format(str(e.lineno), str(e.colno), self.config_path))
+            else:
+                # Validate the configuration
+                if not isinstance(self.mapping, dict):
+                    raise ConfigException('Configuration error (not an object): {}'.format(self.config_path))
+
+                # Validate the content of the configuration
+                # => No more validation here:
+                # => Error will be raised later, when applying the configuration
+
+                # for item in self.mapping:
+                #     if not item.isalpha():
+                #         raise DrivesMappingConfigException('Configuration error ({}): {}'.format(str(item), self.config_path))
+
+                #     path = Path(self.mapping[item])
+                #     if not path.is_dir():
+                #         raise DrivesMappingConfigException('Configuration error ({}): {}'.format(str(item), self.config_path))
+                #     else:
+                #         self.mapping[item] = path
+
+    def __str__(self):
+        """
+        For call to str(). Allows to prints readable form of the object for end users.
+        
+        :return: [description]
+        :rtype: [type]
+        """
+        retstring = ""
+        for drive_letter in self.mapping:
+            retstring = retstring + '{} --> {}\n'.format(drive_letter, self.mapping[drive_letter])
+        return retstring[:-1]  # Removing the last character that is a '\n'
+
+    def add(self, drive_letter, destination):
+        """
+        [summary]
+        
+        :param drive_letter: [description]
+        :type drive_letter: [type]
+        :param destination: [description]
+        :type destination: [type]
+        :return: [description]
+        :rtype: [type]
+        """
+        config_to_write  = self.mapping.copy()
+        config_to_write[drive_letter] = destination
+
+        config_file_existed = self.config_path.is_file()
+
+        if self.mapping == config_to_write:
+            status = 'Success'
+            message = 'Configuration updated'
+        else:
+            try:
+                with open(self.config_path, 'w') as f:
+                    json.dump(config_to_write, f, sort_keys=True, indent=4)
+            except:
+                status = 'Failed'
+                message = 'Impossible to write in configuration file: {}'.format(self.config_path)
+            else:
+                recovered_config = {}
+                try:
+                    with open(self.config_path, 'r') as f:
+                        recovered_config = json.load(f)
+                except:
+                    status = 'Failed'
+                    message = 'Impossible to read configuration file after update: {}'.format(self.config_path)
+                else:
+                    if recovered_config != config_to_write:
+                        status = 'Failed'
+                        message = 'Configuration file update failed: {}'.format(self.config_path)
+                    else:
+                        self.mapping = recovered_config
+
+                        if not config_file_existed:
+                            logging.info('Configuration file created: {}'.format(self.config_path))
+                        
+                        status = 'Success'
+                        message = 'Configuration updated'
+
+        return status, message
+
+    def remove(self, drive_letter):
+        """
+        [summary]
+        
+        :param drive_letter: [description]
+        :type drive_letter: [type]
+        :return: [description]
+        :rtype: [type]
+        """
+        config_to_write  = self.mapping.copy()
+        config_to_write.pop(drive_letter, None)
+
+        if self.mapping == config_to_write:
+            status = 'Success'
+            message = 'Configuration updated'
+        else:
+            try:
+                with open(self.config_path, 'w') as f:
+                    json.dump(config_to_write, f, sort_keys=True, indent=4)
+            except:
+                status = 'Failed'
+                message = 'Impossible to write in configuration file: {}'.format(self.config_path)
+            else:
+                recovered_config = {}
+                try:
+                    with open(self.config_path, 'r') as f:
+                        recovered_config = json.load(f)
+                except:
+                    status = 'Failed'
+                    message = 'Impossible to read configuration file after update: {}'.format(self.config_path)
+                else:
+                    if recovered_config != config_to_write:
+                        status = 'Failed'
+                        message = 'Configuration file update failed: {}'.format(self.config_path)
+                    else:
+                        self.mapping = recovered_config
+
+                        if self.mapping == {}:
+                            logging.info('Configuration file deleted: {}'.format(self.config_path))
+                            os.remove(self.config_path)
+
+                        status = 'Success'
+                        message = 'Configuration updated'
 
         return status, message
